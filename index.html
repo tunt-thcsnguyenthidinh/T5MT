@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cu?c Phiêu Luu Toán H?c L?p 5 - Ti?ng Vi?t Chu?n</title>
+    
+    <!-- 1. Cài d?t Fonts (Nunito & Roboto h? tr? Ti?ng Vi?t d?y d?) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Roboto:wght@400;500;700&display=swap&subset=vietnamese" rel="stylesheet">
+    
+    <!-- 2. KaTeX cho công th?c toán h?c -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- 3. Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { 
+                        sans: ['Nunito', 'Roboto', 'sans-serif'],
+                        display: ['Nunito', 'sans-serif']
+                    },
+                    animation: { 'spin-slow': 'spin 3s linear infinite', 'bounce-slow': 'bounce 3s infinite' }
+                }
+            }
+        }
+    </script>
+
+    <!-- 4. React Dependencies -->
+    <script type="importmap">
+        {
+            "imports": {
+                "react": "https://esm.sh/react@18.2.0",
+                "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+                "lucide-react": "https://esm.sh/lucide-react@0.292.0"
+            }
+        }
+    </script>
+    
+    <!-- 5. Babel Standalone -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        body { margin: 0; padding: 0; overflow-x: hidden; -webkit-tap-highlight-color: transparent; font-family: 'Nunito', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 10px; }
+        /* Fix iOS Zoom */
+        input, select, textarea { font-size: 16px !important; }
+        .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        .glass-card { background: rgba(255, 255, 255, 0.95); border: 2px solid rgba(255,255,255,0.8); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2); }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        import React, { useState, useEffect, useRef } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { 
+            Star, Map, BookOpen, CheckCircle, XCircle, ArrowRight, Home, Calculator, Ruler, Shapes, 
+            PieChart, Trophy, RefreshCcw, Book, List, Keyboard, Save, LogIn, User, Send, Settings, 
+            LogOut, Lock, Unlock, AlertTriangle, X, Loader2, Ban, Award, BarChart3, School, WifiOff, 
+            Link as LinkIcon, Sparkles, Brain, GraduationCap, Pencil, RotateCcw, Gem, Crown 
+        } from 'lucide-react';
+
+        // --- C?U HÌNH ---
+        // HÃY DÁN LINK C?A B?N VÀO DÒNG DU?I ÐÂY
+        const FIXED_GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzkvbCksuMy3U6Mz7BQMuc7Ht5qQjDJm51j3ufV_rTB4lUZnjZFmpd4jmvWugXrxcKZ/exec"; 
+        const GAME_ID = 'math-adventure-v49-vietnamese-fix';
+        const BACKGROUND_IMAGE_URL = 'https://i.pinimg.com/originals/12/43/99/124399c0cd1bea995d36fdab7bb01e22.jpg';
+        
+        // --- HÌNH V? HÌNH H?C (SVG) ---
+        const SvgTriangleBasic = () => (
+            <svg viewBox="0 0 200 150" className="w-full h-40 mx-auto my-4 drop-shadow-md">
+                <polygon points="100,20 20,130 180,130" fill="rgba(255,255,255,0.8)" stroke="#4F46E5" strokeWidth="3" />
+                <text x="95" y="15" fill="#1E293B" fontWeight="bold">A</text>
+                <text x="10" y="140" fill="#1E293B" fontWeight="bold">B</text>
+                <text x="185" y="140" fill="#1E293B" fontWeight="bold">C</text>
+            </svg>
+        );
+        const SvgTriangleHeight = () => (
+            <svg viewBox="0 0 200 150" className="w-full h-40 mx-auto my-4 drop-shadow-md">
+                <polygon points="80,20 20,130 180,130" fill="rgba(255,255,255,0.8)" stroke="#4F46E5" strokeWidth="3" />
+                <line x1="80" y1="20" x2="80" y2="130" stroke="#EF4444" strokeWidth="2" strokeDasharray="5,5" />
+                <rect x="80" y="120" width="10" height="10" fill="none" stroke="#EF4444" />
+                <text x="75" y="15" fill="#1E293B" fontWeight="bold">A</text>
+                <text x="10" y="140" fill="#1E293B" fontWeight="bold">B</text>
+                <text x="185" y="140" fill="#1E293B" fontWeight="bold">C</text>
+                <text x="85" y="125" fill="#EF4444" fontWeight="bold" fontSize="12">H</text>
+            </svg>
+        );
+        const SvgTriangleRight = () => (
+            <svg viewBox="0 0 200 150" className="w-full h-40 mx-auto my-4 drop-shadow-md">
+                <polygon points="40,20 40,130 160,130" fill="rgba(255,255,255,0.8)" stroke="#4F46E5" strokeWidth="3" />
+                <rect x="40" y="120" width="10" height="10" fill="none" stroke="#4F46E5" />
+                <text x="35" y="15" fill="#1E293B" fontWeight="bold">B</text>
+                <text x="30" y="140" fill="#1E293B" fontWeight="bold">A</text>
+                <text x="165" y="140" fill="#1E293B" fontWeight="bold">C</text>
+                <text x="20" y="80" fill="#EF4444" fontWeight="bold">4dm</text>
+                <text x="90" y="145" fill="#EF4444" fontWeight="bold">5dm</text>
+            </svg>
+        );
+        const SvgCompositeShape = () => (
+            <svg viewBox="0 0 250 150" className="w-full h-40 mx-auto my-4 drop-shadow-md">
+                <rect x="50" y="40" width="150" height="80" fill="rgba(255,255,255,0.5)" stroke="#94A3B8" strokeWidth="2" strokeDasharray="5,5"/>
+                <polygon points="120,40 50,120 200,120" fill="rgba(79, 70, 229, 0.3)" stroke="#4F46E5" strokeWidth="3" />
+                <text x="40" y="35" fill="#1E293B" fontWeight="bold">A</text>
+                <text x="210" y="35" fill="#1E293B" fontWeight="bold">B</text>
+                <text x="210" y="135" fill="#1E293B" fontWeight="bold">C</text>
+                <text x="40" y="135" fill="#1E293B" fontWeight="bold">D</text>
+                <text x="115" y="35" fill="#EF4444" fontWeight="bold">E</text>
+                <text x="160" y="35" fill="#64748B" fontSize="10">EB=2cm</text>
+                <text x="215" y="80" fill="#64748B" fontSize="10">BC=1.6cm</text>
+                <text x="125" y="140" fill="#64748B" fontSize="10">DC=3.5cm</text>
+            </svg>
+        );
+
+        // --- D? LI?U GAME ---
+        // Luu ý: Dùng \\ thay vì \ d? tránh l?i escape string trong JS
+        const generateGameData = () => {
+            const createFillQ = (id, q, a, e, svg) => ({ id, type: 'input', question: q, correctAnswer: a, explanation: e, hasSvg: svg });
+            const createMcqQ = (id, q, opts, a, e, svg) => ({ id, type: 'mcq', question: q, options: opts, correctAnswer: a, explanation: e, hasSvg: svg });
+
+            // 1. R?ng Phân S? (Bài 1-53)
+            const coreQuestionsTopic1 = [
+                createMcqQ(1, 'Vi?t thuong $45:100$ du?i d?ng phân s?:', ['$\\frac{100}{45}$', '$\\frac{45}{100}$', '$0,45$', '$\\frac{9}{20}$'], '$\\frac{45}{100}$', '$45:100 = \\frac{45}{100}$'),
+                createFillQ(2, 'Vi?t s? t? nhiên 23 du?i d?ng phân s? có m?u là 1 (d?ng a/b):', '23/1', 'M?i s? t? nhiên a vi?t là $\\frac{a}{1}$.'),
+                createFillQ(3, 'Rút g?n phân s? $\\frac{12}{16}$ (t?i gi?n a/b):', '3/4', 'Chia c? t? và m?u cho 4: $\\frac{12}{16} = \\frac{3}{4}$.'),
+                createMcqQ(4, 'M?u s? chung nh? nh?t c?a $\\frac{3}{4}$ và $\\frac{7}{8}$?', ['32', '16', '8', '12'], '8', '8 chia h?t cho 4 nên 8 là MSC nh? nh?t.'),
+                createFillQ(10, 'Tính $\\frac{3}{5} + \\frac{2}{7}$ (Vi?t d?ng a/b):', '31/35', 'Quy d?ng m?u 35: $\\frac{21}{35} + \\frac{10}{35} = \\frac{31}{35}$.'),
+                createFillQ(20, 'Tính $3\\frac{3}{4} - \\frac{5}{9}$ (Vi?t d?ng a/b):', '115/36', 'Ðua v? phân s? r?i tính: $\\frac{15}{4} - \\frac{5}{9} = \\frac{135-20}{36} = \\frac{115}{36}$.'),
+                createFillQ(30, 'Son 6m tu?ng h?t 180.000d. Son 25m h?t bao nhiêu (d?ng)?', '750000', '1m giá $180000:6 = 30000$d. $25m \\times 30000 = 750000$.'),
+                createFillQ(40, 'Xe ch? 350 bao 40kg. N?u ch? bao 70kg thì du?c m?y bao?', '200', 'T?ng kh?i lu?ng: $350 \\times 40 = 14000$kg. S? bao 70kg: $14000:70 = 200$.'),
+                createMcqQ(51, 'B?n d? t? l? 1:10000. Di?n tích th?c g?p bao nhiêu l?n di?n tích trên b?n d??', ['10000', '100000000', '20000'], '100000000', 'T? l? di?n tích là bình phuong t? l? dài: $10000 \\times 10000 = 100.000.000$.'),
+                createFillQ(53, 'Khu ngh? mát chu vi 2km 8hm, dài g?p 4 r?ng. Tính di?n tích ($m^2$)?', '313600', 'Ð?i 2800m. N?a CV 1400m. $R = 1400:(1+4) = 280m, D = 1120m$. $S = 280 \\times 1120 = 313600$.')
+            ];
+            // L?p d?y Topic 1 v?i bài t?p phân s?/di?n tích
+            const fillGapsT1 = (list) => {
+                const existing = list.map(q=>q.id);
+                for(let i=1; i<=53; i++) {
+                    if(!existing.includes(i)) {
+                         const n = Math.floor(Math.random()*5)+1; const d = n+Math.floor(Math.random()*5)+1;
+                         const type = i % 2 === 0 ? 'fraction' : 'area';
+                         if (type === 'fraction') {
+                             list.push(createFillQ(i, `Bài ${i}: Tính $1 - \\frac{${n}}{${d}}$ (d?ng a/b)`, `${d-n}/${d}`, `Quy d?ng: $\\frac{${d}}{${d}} - \\frac{${n}}{${d}} = \\frac{${d-n}}{${d}}$`));
+                         } else {
+                             const val = Math.floor(Math.random()*10)+1;
+                             list.push(createFillQ(i, `Bài ${i}: Ð?i ${val} $m^2$ = ... $dm^2$`, String(val*100), `1$m^2$ = 100$dm^2$.`));
+                         }
+                    }
+                }
+                return list.sort((a,b)=>a.id-b.id);
+            };
+
+            // 2. Thung Lung S? Th?p Phân (Bài 54-75)
+            const coreQuestionsTopic2 = [
+                createFillQ(54, 'Vi?t s? th?p phân: $4dm = ... m$', '0,4', '$4:10=0,4$.'),
+                createMcqQ(56, 'H?n s? $5\\frac{6}{100}m$ vi?t du?i d?ng s? th?p phân:', ['$5,6m$', '$5,06m$', '$5,006m$'], '$5,06m$', '$5\\frac{6}{100} = 5,06$.'),
+                createFillQ(64, 'Tính $35,4 + 2,8$', '38,2', 'C?ng th?ng hàng d?u ph?y.'),
+                createFillQ(70, 'Tìm x: $x \\times 4 = 12,8$', '3,2', '$x = 12,8 : 4 = 3,2$.'),
+                createFillQ(75, 'T?ng 3 s? là 10. T?ng s? 1&2 là 5,8. T?ng s? 2&3 là 6,7. Tìm s? th? 2.', '2,5', 'S? 3 = $10 - 5,8 = 4,2$. S? 2 = $6,7 - 4,2 = 2,5$.')
+            ];
+             // L?p d?y Topic 2
+            const fillGapsT2 = (list) => {
+                const existing = list.map(q=>q.id);
+                for(let i=54; i<=75; i++) {
+                    if(!existing.includes(i)) {
+                        const a = (Math.random() * 10).toFixed(1); const b = (Math.random() * 5).toFixed(1);
+                        list.push(createFillQ(i, `Bài ${i}: Tính $${a.replace('.',',')} + ${b.replace('.',',')}$`, String((parseFloat(a)+parseFloat(b)).toFixed(1)).replace('.',','), 'C?ng ph?n th?p phân và ph?n nguyên.'));
+                    }
+                }
+                return list.sort((a,b)=>a.id-b.id);
+            };
+
+            // 3. Núi T? S? Ph?n Tram (Bài 76-92) - Chu?n Latex
+            const coreQuestionsTopic3 = [
+                createMcqQ(76, 'Vi?t phân s? $\\frac{1}{4}$ du?i d?ng t? s? ph?n tram:', ['25%', '0,25%', '40%', '14%'], '25%', '$\\frac{1}{4} = 0,25 = 25\\%$'),
+                createFillQ(77, 'Tìm 25% c?a 120.', '30', '$120 \\times 25 : 100 = 30$'),
+                createFillQ(78, 'Tìm 14% c?a 150kg', '21', '$150 \\times 14 : 100 = 21kg$.'),
+                createFillQ(79, 'L?p có 40 h?c sinh, 15 n?. T? s? ph?n tram h?c sinh n? là bao nhiêu? (ch? ghi s?)', '37,5', '$15 : 40 = 0,375 = 37,5\\%$'),
+                createFillQ(80, 'L?p 5A có 40 h?c sinh, 12 n?. T? s? % n? so v?i c? l?p?', '30', '$12 : 40 = 0,3 = 30\\%$'),
+                createFillQ(81, 'Sách giá 50000 d?ng, gi?m giá 10%. Giá m?i là bao nhiêu?', '45000', 'Gi?m: $50000 \\times 10\\% = 5000$. Giá m?i: $50000 - 5000 = 45000$.'),
+                createFillQ(82, 'Bi?t 20% c?a m?t s? là 30. S? dó là bao nhiêu?', '150', '$30 : 20 \\times 100 = 150$'),
+                createMcqQ(83, 'Vi?t s? th?p phân 0,45 du?i d?ng t? s? ph?n tram:', ['4,5%', '45%', '0,45%', '450%'], '45%', '$0,45 = 45\\%$'),
+                createFillQ(84, 'Tìm t? s? ph?n tram c?a 18 và 12.', '150', '$18 : 12 = 1,5 = 150\\%$'),
+                createFillQ(85, 'G?i 8 tri?u d?ng, lãi 1,2%/tháng. Ti?n lãi 1 tháng là bao nhiêu d?ng?', '96000', '$8.000.000 \\times 1,2 : 100 = 96.000$'),
+                createFillQ(86, 'Tìm 15% c?a 320.', '48', '$320 \\times 15 : 100 = 48$'),
+                createFillQ(87, 'L?p 5A có 30 h?c sinh, trong dó 90% di h?c dúng gi?. S? h?c sinh dúng gi??', '27', '$30 \\times 90 : 100 = 27$'),
+                createFillQ(88, '1000 s?n ph?m, 95% d?t chu?n. S? s?n ph?m d?t chu?n?', '950', '$1000 \\times 95 : 100 = 950$'),
+                createFillQ(89, 'Lãi 0,5% m?t tháng. G?i 1.000.000 d?ng, lãi bao nhiêu?', '5000', '$1.000.000 \\times 0,5 : 100 = 5000$'),
+                createFillQ(90, 'Tìm x bi?t 50% c?a x là 100.', '200', '$100 : 50 \\times 100 = 200$'),
+                createFillQ(91, 'Bi?t 35% c?a m?t s? là 14. S? dó là bao nhiêu?', '40', '$14 : 35 \\times 100 = 40$'),
+                createMcqQ(92, 'Vi?t h?n s? $1\\frac{1}{4}$ du?i d?ng t? s? ph?n tram:', ['125%', '14%', '114%', '1,25%'], '125%', '$1\\frac{1}{4} = 1,25 = 125\\%$')
+            ];
+
+            // 4. Thành Ph? Hình Tam Giác (Bài 93-100)
+            const coreQuestionsTopic4 = [
+                createMcqQ(93, 'Quan sát hình v?. Hình tam giác ABC có:', ['3 góc nh?n', '1 góc vuông', '3 góc tù'], '3 góc nh?n', 'Quan sát hình v?.', 'triangleBasic'),
+                createMcqQ(94, 'Trong hình v? bên, du?ng cao tuong ?ng v?i dáy BC là:', ['AB', 'AC', 'AH'], 'AH', 'Ðu?ng cao vuông góc v?i dáy.', 'triangleHeight'),
+                createFillQ(95, 'Tính di?n tích tam giác vuông có 2 c?nh góc vuông 4dm và 5dm ($dm^2$):', '10', '$(4 \\times 5) : 2 = 10$.', 'triangleRight'),
+                createFillQ(96, 'Tính di?n tích hình tam giác dáy 3,6m cao 16dm ($m^2$).', '2,88', 'Ð?i 16dm=1,6m. $3,6 \\times 1,6 : 2 = 2,88$.'),
+                createFillQ(97, 'S=60cm2, cao AH=0,8dm. Ðáy BC (cm)?', '15', 'Ð?i 0,8dm=8cm. $60 \\times 2 : 8 = 15$.'),
+                createFillQ(98, 'Cho hình v?. Bi?t EB=2cm, BC=1,6cm, AB=3,5cm. Tính S tam giác EDC ($cm^2$).', '2,8', 'Ðáy DC=AB=3,5. Cao=BC=1,6. $3,5 \\times 1,6 : 2 = 2,8$.', 'compositeShape'),
+                createFillQ(99, 'Ðáy 30m, cao b?ng 60% dáy. Di?n tích ($m^2$)?', '270', 'Cao=18m. S=270.'),
+                createFillQ(100, 'S=200m2, cao 20m. Ðáy (m)?', '20', '$200 \\times 2 : 20 = 20$.')
+            ];
+
+            return {
+                config: {
+                    backgrounds: {
+                        main: "https://i.pinimg.com/originals/12/43/99/124399c0cd1bea995d36fdab7bb01e22.jpg",
+                        forest: "https://i.pinimg.com/736x/95/22/67/952267e5132e0ba6fe7ccf27122d47a9.jpg",
+                        valley: "https://i.pinimg.com/736x/34/43/64/3443642e2825e2721513622cddb4ee58.jpg",
+                        mountain: "https://i.pinimg.com/736x/5a/ce/fa/5acefa5d278ba44744bd1c157c3e1aea.jpg",
+                        city: "https://i.pinimg.com/736x/09/43/a4/0943a46fbbf33b06317ab9f3cdd9b454.jpg"
+                    }
+                },
+                topics: [
+                    { id: 'topic-1', title: 'R?ng Phân S?', icon: 'PieChart', color: 'bg-green-600', bgImage: 'forest', questions: fillGapsT1(coreQuestionsTopic1) },
+                    { id: 'topic-2', title: 'Thung Lung S? Th?p Phân', icon: 'Calculator', color: 'bg-indigo-500', bgImage: 'valley', questions: fillGapsT2(coreQuestionsTopic2) },
+                    { id: 'topic-3', title: 'Núi T? S? Ph?n Tram', icon: 'RefreshCcw', color: 'bg-orange-500', bgImage: 'mountain', questions: coreQuestionsTopic3 },
+                    { id: 'topic-4', title: 'Thành Ph? Hình Tam Giác', icon: 'Shapes', color: 'bg-red-500', bgImage: 'city', questions: coreQuestionsTopic4 }
+                ]
+            };
+        };
+
+        const GAME_DATA = generateGameData();
+
+        // --- API SERVICE ---
+        const apiService = {
+            async callScript(payload) {
+                let url = FIXED_GOOGLE_SCRIPT_URL || localStorage.getItem('teacherUrl') || "";
+                if (!url) throw new Error("Chua c?u hình Link Server! Hãy nh?p link vào ph?n Cài d?t.");
+                const bodyData = JSON.stringify({ ...payload, gameId: GAME_ID });
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST', body: bodyData, headers: { "Content-Type": "text/plain;charset=utf-8" }, redirect: 'follow'
+                    });
+                    if (!response.ok) console.warn("Response not OK");
+                    const text = await response.text();
+                    try { return JSON.parse(text); } 
+                    catch(err) { 
+                        if (payload.action === 'get_leaderboard' || payload.action === 'login') throw new Error("L?i d?c d? li?u.");
+                        return { status: 'success', message: 'Blind success' }; 
+                    }
+                } catch (e) { 
+                     if (payload.action === 'save' || payload.action === 'submit_score') {
+                         try {
+                             await fetch(url, { method: 'POST', body: bodyData, headers: { "Content-Type": "text/plain;charset=utf-8" }, mode: 'no-cors' });
+                             return { status: 'success' };
+                         } catch(e2) { throw new Error("L?i m?ng."); }
+                    }
+                    throw new Error("L?i k?t n?i.");
+                }
+            }
+        };
+
+        // --- SOUND SYSTEM ---
+        const playGameSound = (type) => {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+                const now = ctx.currentTime;
+                const playTone = (freq, wave, start, dur, vol = 0.1) => {
+                    const osc = ctx.createOscillator(); const gain = ctx.createGain();
+                    osc.type = wave; osc.frequency.setValueAtTime(freq, start);
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    gain.gain.setValueAtTime(0, start); gain.gain.linearRampToValueAtTime(vol, start + 0.01); gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
+                    osc.start(start); osc.stop(start + dur);
+                };
+                if (type === 'correct') { playTone(783, 'sine', now, 0.1, 0.2); playTone(987, 'sine', now+0.05, 0.1, 0.2); playTone(1174, 'square', now+0.1, 0.3, 0.1); } 
+                else if (type === 'incorrect') { const o = ctx.createOscillator(); const g = ctx.createGain(); o.type = 'sawtooth'; o.frequency.setValueAtTime(150, now); o.frequency.linearRampToValueAtTime(50, now+0.4); g.gain.setValueAtTime(0.2, now); g.gain.linearRampToValueAtTime(0.001, now+0.4); o.connect(g); g.connect(ctx.destination); o.start(now); o.stop(now+0.4); }
+                else if (type === 'guide') { playTone(523, 'triangle', now, 0.1); playTone(659, 'triangle', now+0.1, 0.1); playTone(783, 'triangle', now+0.2, 0.2); }
+                else if (type === 'win') { const t=0.1; playTone(523,'square',now,t); playTone(523,'square',now+t,t); playTone(659,'square',now+t*3,1.5,0.2); }
+                else if (type === 'reset') { const o=ctx.createOscillator(); const g = ctx.createGain(); o.frequency.setValueAtTime(100,now); o.frequency.exponentialRampToValueAtTime(1000,now+0.5); o.connect(ctx.destination); o.start(now); o.stop(now+0.5); }
+            } catch (e) {}
+        };
+        const LatexText = ({ children }) => { const ref = useRef(null); useEffect(() => { if (window.renderMathInElement && window.katex && ref.current) window.renderMathInElement(ref.current, { delimiters: [{left: "$$", right: "$$", display: true}], throwOnError: false }); }, [children]); return <span ref={ref}>{children}</span>; };
+        
+        // --- COMPONENTS ---
+        const Overlay = () => <div className="absolute inset-0 bg-black/40 z-0 pointer-events-none"></div>;
+        const FixedBackground = ({url}) => <div className="fixed inset-0 z-[-1] bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url('${url}')` }}><div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"></div></div>;
+        const FloatingIcons = () => (<div className="absolute inset-0 overflow-hidden pointer-events-none z-0"><Calculator className="absolute top-10 left-10 text-white/20 w-12 h-12 animate-bounce" /><Shapes className="absolute top-1/2 right-10 text-white/10 w-24 h-24 rotate-12" /><BookOpen className="absolute bottom-32 left-1/3 text-white/15 w-20 h-20" /></div>);
+
+        const GuideScreen = ({ onReady }) => {
+            useEffect(() => { playGameSound('guide'); }, []);
+            const steps = [{ icon: Map, color: 'text-blue-500', title: 'Ch?n B?n Ð?', desc: 'T? do khám phá 4 vùng d?t k? bí.' }, { icon: Brain, color: 'text-purple-500', title: 'Chinh Ph?c', desc: 'Tr? l?i dúng d? tích luy di?m s?.' }, { icon: Send, color: 'text-green-500', title: 'G?i Ði?m', desc: 'G?i k?t qu? d? m? khóa vùng d?t m?i!' }];
+            return (<div className="min-h-screen flex items-center justify-center p-4 relative font-sans bg-cover bg-center" style={{backgroundImage: `url('${GAME_DATA.config.backgrounds.main}')`}}><Overlay /><div className="relative z-10 w-full max-w-4xl"><h2 className="text-4xl md:text-5xl font-black text-center text-white mb-10 drop-shadow-lg animate-bounce">HU?NG D?N</h2><div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">{steps.map((s, i) => (<div key={i} className="bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-xl border-4 border-white transform hover:scale-105 transition-transform duration-300"><div className="mx-auto w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-md"><s.icon className={`w-8 h-8 md:w-10 md:h-10 ${s.color}`} /></div><h3 className={`text-2xl font-black text-center mb-2 ${s.color}`}>{s.title}</h3><p className="text-slate-600 text-center font-bold">{s.desc}</p></div>))}</div><div className="text-center"><button onClick={onReady} className="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-300 hover:to-orange-400 text-white font-black py-4 px-16 rounded-full text-3xl shadow-lg active:translate-y-2 uppercase tracking-wider animate-pulse">S?N SÀNG!</button></div></div></div>);
+        };
+        const AlertModal = ({ type, message, onClose }) => {
+            if (!message) return null;
+            const styles = { error: { border: 'border-red-500', iconBg: 'bg-red-100', iconText: 'text-red-600', title: 'Chú Ý!', btn: 'bg-red-600 hover:bg-red-700', Icon: AlertTriangle }, success: { border: 'border-green-500', iconBg: 'bg-green-100', iconText: 'text-green-600', title: 'Thành Công!', btn: 'bg-green-600 hover:bg-green-700', Icon: CheckCircle }, lock: { border: 'border-slate-400', iconBg: 'bg-slate-100', iconText: 'text-slate-500', title: 'Chua Th? M?', btn: 'bg-slate-700 hover:bg-slate-800', Icon: Ban } };
+            const s = styles[type]; const Icon = s.Icon;
+            return (<div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[90] p-4 backdrop-blur-sm animate-[fadeIn_0.2s]"><div className={`bg-white rounded-3xl p-6 md:p-8 w-full max-w-md shadow-2xl border-4 ${s.border} relative`}><button onClick={onClose} className="absolute top-4 right-4 bg-gray-100 p-2 rounded-full hover:bg-gray-200"><X size={20}/></button><div className={`mx-auto w-16 h-16 ${s.iconBg} rounded-full flex items-center justify-center mb-4 ${s.iconText} animate-bounce`}><Icon size={32}/></div><h3 className={`text-2xl md:text-3xl font-black ${s.titleColor} mb-4 text-center uppercase`}>{s.title}</h3><p className="text-center font-bold text-slate-600 mb-6 text-lg">{message}</p><button onClick={onClose} className={`w-full ${s.btn} text-white font-black py-3 rounded-xl shadow-lg uppercase`}>Ðã Hi?u</button></div></div>);
+        };
+        const TeacherSettingsModal = ({ isOpen, onClose, teacherUrl, setTeacherUrl }) => {
+            const [pin, setPin] = useState(''); const [unlocked, setUnlocked] = useState(false); const [err, setErr] = useState(''); const [testing, setTesting] = useState(false); const [res, setRes] = useState('');
+            if(!isOpen) return null;
+            const check = () => { if(pin==='2024') setUnlocked(true); else setErr('Sai mã PIN'); };
+            const testConn = async () => { setTesting(true); try { await apiService.callScript({action:'test'}); setRes('K?t n?i OK! ?'); } catch(e){ setRes('L?i k?t n?i ?'); } finally { setTesting(false); }};
+            return (<div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[80] p-4 backdrop-blur-sm"><div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl"><h3 className="text-xl font-black mb-4 flex items-center gap-2"><School className="text-blue-600"/> Khu V?c Giáo Viên</h3>{!unlocked ? (<div className="bg-slate-100 p-4 rounded-xl border-2 border-slate-200"><p className="text-sm font-bold mb-2">Nh?p mã PIN b?o m?t:</p><div className="flex gap-2"><input type="password" className="flex-1 p-2 border-2 rounded-lg text-center font-bold" value={pin} onChange={e=>setPin(e.target.value)} /><button onClick={check} className="bg-blue-600 text-white px-4 rounded-lg font-bold">M?</button></div>{err && <p className="text-red-500 text-xs mt-2 font-bold">{err}</p>}</div>) : (<div className="animate-[fadeIn_0.3s]"><label className="block text-sm font-bold mb-2">Link Google Apps Script:</label><input type="text" className="w-full p-3 border-2 rounded-xl text-xs font-mono bg-blue-50" value={teacherUrl} onChange={e=>setTeacherUrl(e.target.value)} placeholder="https://script.google.com/..." /><div className="flex justify-between mt-3 items-center">{FIXED_GOOGLE_SCRIPT_URL && <span className="text-xs text-green-600 font-bold"><CheckCircle size={12} className="inline"/> Mã ngu?n</span>}<button onClick={testConn} disabled={testing} className="text-xs bg-slate-200 px-3 py-2 rounded-lg font-bold flex items-center gap-1">{testing ? <Loader2 className="animate-spin" size={12}/> : <RefreshCcw size={12}/>} Ki?m tra</button></div>{res && <p className="text-xs font-bold mt-2 text-center">{res}</p>}</div>)}<button onClick={onClose} className="mt-4 w-full bg-slate-200 font-bold py-3 rounded-xl hover:bg-slate-300">Ðóng</button></div></div>);
+        };
+        const GameSettingsModal = ({isOpen, onClose, onLogout}) => (!isOpen ? null : <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"><div className="bg-white rounded-3xl p-6 w-full max-w-md"><h3 className="text-xl font-black mb-4">Cài Ð?t</h3><div className="flex gap-2"><button onClick={onLogout} className="flex-1 bg-red-100 text-red-600 font-bold py-3 rounded-xl">Ðang xu?t</button><button onClick={onClose} className="flex-1 bg-slate-200 font-bold py-3 rounded-xl">Ðóng</button></div></div></div>);
+        const UserProfileModal = ({ user, onClose }) => (<div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[80] p-4 backdrop-blur-sm animate-in fade-in"><div className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl relative border-4 border-blue-200"><button onClick={onClose} className="absolute top-4 right-4 bg-slate-100 p-2 rounded-full text-slate-500 hover:bg-slate-200"><X size={20} /></button><div className="text-center"><div className="bg-blue-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-blue-500"><User size={48} className="text-blue-600" /></div><h3 className="text-2xl font-black text-slate-800 mb-1">{user.username}</h3><p className="text-slate-500 font-bold mb-6 text-sm uppercase tracking-wide">H? so thám hi?m</p><div className="grid grid-cols-2 gap-4 mb-6"><div className="bg-yellow-50 p-4 rounded-2xl border-2 border-yellow-200"><div className="flex items-center justify-center gap-2 text-yellow-600 mb-1"><Trophy size={20}/> Ði?m</div><div className="text-3xl font-black text-slate-800">{user.progress.totalScore}</div></div><div className="bg-green-50 p-4 rounded-2xl border-2 border-green-200"><div className="flex items-center justify-center gap-2 text-green-600 mb-1"><Award size={20}/> Hoàn thành</div><div className="text-3xl font-black text-slate-800">{user.progress.completedTopics.length}/4</div></div></div></div></div></div>);
+        const LogoutConfirmModal = ({isOpen, onConfirm, onCancel}) => (!isOpen ? null : <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"><div className="bg-white rounded-3xl p-6 w-full max-w-md"><h3 className="text-xl font-black mb-2 text-center">Luu & Thoát?</h3><p className="text-center text-slate-500 mb-6">D? li?u s? du?c g?i lên h? th?ng.</p><div className="flex gap-4"><button onClick={onCancel} className="flex-1 bg-slate-100 font-bold py-3 rounded-xl">? l?i</button><button onClick={onConfirm} className="flex-1 bg-red-500 text-white font-bold py-3 rounded-xl">Thoát</button></div></div></div>);
+        const LockedTopicModal = ({ isOpen, onClose, message }) => (!isOpen ? null : <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[70] p-4 backdrop-blur-sm"><div className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl border-4 border-slate-400 relative"><button onClick={onClose} className="absolute top-4 right-4 bg-slate-100 p-2 rounded-full"><X size={24}/></button><h3 className="text-2xl font-black text-slate-700 mb-4 text-center">Chua Th? M?</h3><p className="text-slate-500 text-center mb-8 font-medium text-lg">{message}</p><button onClick={onClose} className="w-full bg-slate-700 text-white font-black py-4 rounded-xl">Ðã hi?u</button></div></div>);
+        const CompletionScreen = ({ onHome }) => (<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6 backdrop-blur-md"><div className="bg-white rounded-[3rem] p-8 md:p-16 max-w-lg w-full text-center shadow-2xl border-8 border-white"><Trophy size={80} className="mx-auto text-yellow-500 mb-6"/><h2 className="text-4xl font-black text-slate-800 mb-6">XU?T S?C!</h2><button onClick={onHome} className="w-full bg-blue-600 text-white font-black py-5 rounded-3xl text-xl">QUAY V? B?N Ð?</button></div></div>);
+        const GameCompletionModal = ({ progress, onReset, onClose, bg }) => (<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-6"><div className="bg-cover bg-center rounded-[3rem] p-10 w-full max-w-xl text-center shadow-2xl border-[8px] border-yellow-300 relative" style={{backgroundImage: `url('${bg}')`}}><div className="absolute inset-0 bg-white/90 z-0"></div><div className="relative z-10"><Trophy size={80} className="mx-auto text-yellow-500 mb-6"/><h2 className="text-4xl font-black text-orange-600 mb-4">NHÀ VÔ Ð?CH!</h2><div className="text-6xl font-black text-slate-800 my-6">{progress.totalScore}</div><button onClick={onReset} className="w-full bg-blue-600 text-white font-black py-5 rounded-2xl mb-4">Choi L?i T? Ð?u</button><button onClick={onClose} className="w-full bg-slate-100 font-bold py-4 rounded-2xl">Ðóng</button></div></div></div>);
+        const Leaderboard = ({ onClose, data }) => (<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-6"><div className="bg-white rounded-[2rem] p-6 w-full max-w-lg shadow-2xl relative max-h-[80vh] overflow-y-auto"><button onClick={onClose} className="absolute top-4 right-4 bg-slate-100 p-2 rounded-full"><X size={20}/></button><h3 className="text-2xl font-black text-center mb-6">B?NG X?P H?NG</h3>{data.length===0?<p className="text-center italic">Ðang t?i...</p>:data.map((e,i)=><div key={i} className="flex justify-between p-4 border-b font-bold"><span>{i+1}. {e.username}</span><span className="text-blue-600">{e.score}</span></div>)}</div></div>);
+        const WelcomeScreen = ({onStart, bg}) => (<div className="flex flex-col items-center justify-center min-h-screen p-4 text-white text-center font-sans bg-cover bg-center" style={{backgroundImage: `url('${GAME_DATA.config.backgrounds.main}')`}}><Overlay/><div className="relative z-10"><FloatingIcons/><h1 className="text-4xl md:text-6xl font-black mb-4">Cu?c Phiêu Luu Toán H?c</h1><button onClick={onStart} className="bg-yellow-400 text-yellow-900 font-black py-4 px-10 rounded-full text-2xl shadow-lg mt-8">B?T Ð?U NGAY!</button></div></div>);
+
+        const AuthScreen = ({onLogin, teacherUrl, setTeacherUrl, bg}) => {
+            const [u, setU] = useState(''); const [p, setP] = useState(''); const [msg, setMsg] = useState(''); const [load, setLoad] = useState(false); const [set, setSet] = useState(false);
+            const handle = async (e) => { e.preventDefault(); if(!teacherUrl) { setMsg("Chua có Link Server!"); return;} setMsg(''); setLoad(true); try { const res = await apiService.callScript({action:'login', username:u, password:p}); if(res.status==='success') onLogin({username:u, password:p, progress: res.progress}); else setMsg(res.message); } catch(e){ setMsg("L?i k?t n?i m?ng: " + e.message); } finally { setLoad(false); }};
+            return (<div className="min-h-screen flex items-center justify-center p-4 relative bg-cover bg-center" style={{backgroundImage: `url('${GAME_DATA.config.backgrounds.main}')`}}><Overlay/><div className="absolute bottom-4 right-4 z-20"><button onClick={()=>setSet(true)} className="bg-white/20 text-white/80 text-xs px-3 py-1 rounded-full"><Settings size={12}/> Cài d?t</button></div><AlertModal type="error" message={msg} onClose={()=>setMsg('')}/><TeacherSettingsModal isOpen={set} onClose={()=>setSet(false)} teacherUrl={teacherUrl} setTeacherUrl={setTeacherUrl}/><div className="bg-white p-8 rounded-[2rem] shadow-2xl w-full max-w-sm relative z-10 glass-card"><h2 className="text-3xl font-black text-center mb-6 text-slate-800">Ðang Nh?p</h2><form onSubmit={handle} className="space-y-4"><input className="w-full p-4 rounded-xl border-2 font-bold" placeholder="Tên dang nh?p" value={u} onChange={e=>setU(e.target.value)} required/><input className="w-full p-4 rounded-xl border-2 font-bold" type="password" placeholder="M?t kh?u" value={p} onChange={e=>setP(e.target.value)} required/><button disabled={load} className="w-full bg-indigo-600 text-white font-black py-4 rounded-xl">{load ? "Ðang t?i..." : "VÀO GAME"}</button></form></div></div>);
+        };
+        const ReviewScreen = ({ onContinue }) => (<div className="min-h-screen p-8 relative bg-cover bg-center flex items-center justify-center" style={{backgroundImage: `url('${GAME_DATA.config.backgrounds.main}')`}}><Overlay/><div className="relative z-10 bg-white/90 p-8 rounded-3xl max-w-4xl text-center"><h2 className="text-4xl font-black mb-6 text-indigo-600">Hành Trang Ki?n Th?c</h2><button onClick={onContinue} className="bg-yellow-400 text-yellow-900 font-black py-4 px-12 rounded-full text-2xl shadow-lg">VÀO B?N Ð?</button></div></div>);
+
+        // --- MAIN APP ---
+        const MathAdventure = () => {
+            const [gameData] = useState(GAME_DATA);
+            const [user, setUser] = useState(null); const [screen, setScreen] = useState('welcome'); const [topic, setTopic] = useState(null); const [qIdx, setQIdx] = useState(0); const [progress, setProgress] = useState({completedTopics:[], currentTopicId:null, totalScore:0, reportSent:false}); const [selectedOpt, setSelectedOpt] = useState(null); const [inputVal, setInputVal] = useState(''); const [showExp, setShowExp] = useState(false); const [msg, setMsg] = useState(null); const [settings, setSettings] = useState(false); const [logoutConf, setLogoutConf] = useState(false); const [showLeader, setShowLeader] = useState(false); const [leaderData, setLeaderData] = useState([]); const [gameDone, setGameDone] = useState(false); const [teacherUrl, setTeacherUrl] = useState(FIXED_GOOGLE_SCRIPT_URL); const [sending, setSending] = useState(false); const [lockedModal, setLockedModal] = useState({show:false, msg:''}); const [fetchingLB, setFetchingLB] = useState(false);
+
+            useEffect(() => { if(!FIXED_GOOGLE_SCRIPT_URL) { const saved = localStorage.getItem('teacherUrl'); if(saved) setTeacherUrl(saved); } }, []);
+            const handleLogin = (u) => { setUser(u); setProgress(u.progress); setScreen(u.progress.currentTopicId ? 'quiz' : 'map'); if(u.progress.currentTopicId) { const t = gameData.topics.find(x=>x.id===u.progress.currentTopicId); setTopic(t); setQIdx(u.progress.currentQuestionIndex); } if(u.progress.completedTopics.length===4) setGameDone(true); };
+            const startTopic = (t) => { if(progress.completedTopics.includes(t.id)) { setLockedModal({show:true, msg:'Ðã hoàn thành!'}); playGameSound('error'); return; } if(progress.completedTopics.length > 0 && !progress.reportSent && t.id !== progress.currentTopicId) { setLockedModal({show:true, msg:'C?n G?I ÐI?M tru?c!'}); playGameSound('error'); return; } setTopic(t); setQIdx(0); setScreen('quiz'); setProgress({...progress, currentTopicId: t.id, currentQuestionIndex: 0}); };
+            const handleAnswer = (correct) => { setShowExp(true); playGameSound(correct?'correct':'incorrect'); if(correct) setProgress({...progress, totalScore: progress.totalScore + 10, currentQuestionIndex: qIdx, reportSent: false}); };
+            const nextQ = () => { if(qIdx >= topic.questions.length - 1) { const newComp = [...progress.completedTopics]; if(!newComp.includes(topic.id)) newComp.push(topic.id); setProgress({...progress, completedTopics: newComp, currentTopicId: null, currentQuestionIndex: 0, reportSent: false}); playGameSound('win'); setSelectedOpt(null); setInputVal(''); setShowExp(false); setScreen('map'); if(newComp.length === 4) setGameDone(true); } else { setQIdx(qIdx + 1); setProgress({...progress, currentQuestionIndex: qIdx + 1}); setSelectedOpt(null); setInputVal(''); setShowExp(false); } };
+            const sendReport = async () => { if(!user) return; setSending(true); try { await apiService.callScript({action:'submit_score', username:user.username, score:progress.totalScore, completed: progress.completedTopics.length}); setMsg({type:'success', msg:'G?i di?m thành công!'}); setProgress({...progress, reportSent: true}); await apiService.callScript({action:'save', username:user.username, password:user.password, progress:{...progress, reportSent:true}}); } catch(e){ setMsg({type:'error', msg:'L?i m?ng!'}); } finally { setSending(false); } };
+            const getLeaderboard = async () => { setShowLeader(true); setFetchingLB(true); try { const res = await apiService.callScript({action:'get_leaderboard'}); if(res.data) setLeaderData(res.data); else setLeaderData([]); } catch(e) { setLeaderData([]); } finally { setFetchingLB(false); } };
+            const resetGame = async () => { const empty = {completedTopics:[], currentTopicId:null, currentQuestionIndex:0, totalScore:0, reportSent:false}; setProgress(empty); setGameDone(false); setScreen('map'); playGameSound('reset'); try { await apiService.callScript({action:'save', username:user.username, password:user.password, progress:empty}); } catch(e){} };
+
+            if(!user) {
+                if(screen === 'welcome') return <WelcomeScreen onStart={()=>setScreen('guide')} bg={gameData.config.backgrounds.main}/>;
+                if(screen === 'guide') return <GuideScreen onReady={()=>setScreen('auth')} />;
+                return <AuthScreen onLogin={handleLogin} teacherUrl={teacherUrl} setTeacherUrl={setTeacherUrl} bg={gameData.config.backgrounds.main}/>;
+            }
+
+            return (
+                <div className="font-sans text-slate-800 min-h-screen">
+                    <FixedBackground url={gameData.config.backgrounds.main}/>
+                    <AlertModal type={msg?.type||'error'} message={msg?.msg} onClose={()=>setMsg(null)}/>
+                    <GameSettingsModal isOpen={settings} onClose={()=>setSettings(false)} onLogout={()=>setLogoutConf(true)}/>
+                    <LogoutConfirmModal isOpen={logoutConf} onConfirm={()=>{setUser(null); setScreen('welcome'); setLogoutConf(false);}} onCancel={()=>setLogoutConf(false)}/>
+                    <LockedTopicModal isOpen={lockedModal.show} message={lockedModal.msg} onClose={()=>setLockedModal({show:false})}/>
+                    {showLeader && <Leaderboard onClose={()=>setShowLeader(false)} data={leaderData}/>}
+                    {gameDone && <GameCompletionModal progress={progress} onReset={resetGame} onClose={()=>setGameDone(false)} bg={gameData.config.backgrounds.main}/>}
+                    {/* Header */}
+                    <div className="fixed top-0 left-0 right-0 p-4 z-50 flex justify-between pointer-events-none"><div className="bg-white/90 backdrop-blur rounded-full px-4 py-2 flex items-center gap-3 shadow-sm pointer-events-auto"><User size={16}/><span className="font-bold">{user.username}</span></div><div className="flex gap-2 pointer-events-auto"><div className="bg-white/90 backdrop-blur rounded-full px-4 py-2 flex items-center gap-2 shadow-sm"><Trophy size={18} className="text-yellow-500"/><span className="font-black">{progress.totalScore}</span></div><button onClick={()=>setSettings(true)} className="bg-white/90 p-2 rounded-full hover:bg-white"><Settings/></button></div></div>
+                    
+                    {screen === 'map' && (
+                        <div className="min-h-screen relative pt-24 pb-10 px-4 overflow-y-auto">
+                            <div className="relative z-10 max-w-4xl mx-auto"><h1 className="text-4xl font-black text-white text-center mb-8 drop-shadow-md">B?N Ð?</h1>
+                                <div className="text-center mb-8"><button onClick={getLeaderboard} className="bg-white hover:bg-gray-100 font-bold py-2 px-6 rounded-full shadow-lg text-indigo-600 flex items-center justify-center gap-2 mx-auto"><Trophy size={18}/> {fetchingLB ? "Ðang t?i..." : "B?ng X?p H?ng"}</button></div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {gameData.topics.map(t => (
+                                        <button key={t.id} onClick={()=>startTopic(t)} className={`relative p-8 rounded-[2rem] text-left transition-all border-b-8 active:border-b-0 overflow-hidden group ${progress.completedTopics.includes(t.id)?'border-yellow-400':'border-blue-200 hover:border-blue-400'}`} style={{backgroundImage:`url('${gameData.config.backgrounds[t.bgImage]}')`, backgroundSize:'cover'}}>
+                                            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors"></div>
+                                            <div className="relative z-10">
+                                                <h3 className="text-2xl font-black mb-1 text-white drop-shadow-md">{t.title}</h3>
+                                                <p className="font-bold text-white/80">{t.questions.length} th? thách</p>
+                                                {progress.completedTopics.includes(t.id) ? <span className="inline-flex items-center gap-1 bg-yellow-400 text-yellow-900 px-2 py-1 rounded text-xs font-black mt-2">? HOÀN THÀNH</span> : <span className="inline-flex items-center gap-1 bg-white/20 backdrop-blur text-white px-2 py-1 rounded text-xs font-bold mt-2 border border-white/30">S?N SÀNG</span>}
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                                <div className="mt-12 text-center pb-8">
+                                    {progress.completedTopics.length === 4 ? 
+                                        <button onClick={()=>setGameDone(true)} className="w-full bg-yellow-400 hover:bg-yellow-300 text-yellow-900 font-black py-4 px-8 rounded-2xl shadow-lg text-xl uppercase"><Trophy size={24} className="inline mr-2"/> T?ng K?t</button> :
+                                        <button onClick={sendReport} disabled={sending || progress.reportSent} className={`w-full text-white font-black py-4 rounded-2xl shadow-lg text-xl uppercase flex items-center justify-center gap-2 ${progress.reportSent ? 'bg-slate-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'}`}>{progress.reportSent ? <><CheckCircle/> ÐÃ G?I ÐI?M</> : <><Send/> G?I ÐI?M</>}</button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {screen === 'quiz' && topic && (
+                        <div className="min-h-screen relative flex flex-col p-4 pt-24 bg-cover bg-center" style={{backgroundImage:`url('${GAME_DATA.config.backgrounds[topic.bgImage] || GAME_DATA.config.backgrounds.main}')`}}>
+                            <div className="absolute inset-0 bg-black/60 z-0"></div>
+                            <div className="relative z-10 max-w-4xl mx-auto w-full flex-1 flex flex-col">
+                                <div className="flex justify-between text-white mb-6 items-center px-2">
+                                    <button onClick={()=>setScreen('map')} className="bg-white/20 p-3 rounded-xl hover:bg-white/30 backdrop-blur"><Home/></button>
+                                    <div className="font-black text-2xl drop-shadow-md">Câu {qIdx+1} <span className="opacity-50 text-lg">/ {topic.questions.length}</span></div>
+                                    <div className="w-10"></div>
+                                </div>
+                                <div className="bg-white/85 backdrop-blur-xl rounded-[2.5rem] shadow-2xl overflow-hidden flex-1 flex flex-col border-4 border-white/50">
+                                    <div className="bg-indigo-50/50 p-8 text-center border-b-2 border-white min-h-[180px] flex flex-col items-center justify-center relative">
+                                        <h3 className="text-2xl md:text-4xl font-black text-slate-800 leading-relaxed mb-4"><LatexText>{topic.questions[qIdx].question}</LatexText></h3>
+                                        {topic.questions[qIdx].hasSvg === 'triangleBasic' && <SvgTriangleBasic/>}
+                                        {topic.questions[qIdx].hasSvg === 'triangleHeight' && <SvgTriangleHeight/>}
+                                        {topic.questions[qIdx].hasSvg === 'triangleRight' && <SvgTriangleRight/>}
+                                        {topic.questions[qIdx].hasSvg === 'compositeShape' && <SvgCompositeShape/>}
+                                    </div>
+                                    <div className="p-8 flex-1 flex flex-col justify-center">
+                                        {topic.questions[qIdx].type === 'mcq' ? (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {topic.questions[qIdx].options.map((opt, i) => {
+                                                    const isSel = selectedOpt === opt;
+                                                    const isCorr = opt === topic.questions[qIdx].correctAnswer;
+                                                    let cls = "border-4 border-slate-200 bg-white text-slate-600";
+                                                    const colors = ["border-blue-200 text-blue-800", "border-green-200 text-green-800", "border-orange-200 text-orange-800", "border-pink-200 text-pink-800"];
+                                                    if(!showExp) cls = `${colors[i%4]} hover:scale-[1.02]`;
+
+                                                    if(showExp) {
+                                                        if(isCorr) cls = "bg-green-100 border-green-500 text-green-800 font-bold ring-4 ring-green-200 scale-105";
+                                                        else if(isSel) cls = "bg-red-50 border-red-300 text-red-800 opacity-60";
+                                                        else cls = "opacity-50 grayscale border-slate-100";
+                                                    } else if(isSel) cls = "bg-indigo-50 border-indigo-500 text-indigo-900 ring-4 ring-indigo-200 font-bold scale-[1.02]";
+                                                    
+                                                    return (
+                                                        <button key={i} disabled={showExp} onClick={()=>setSelectedOpt(opt)} className={`p-6 rounded-[2rem] text-lg md:text-2xl font-bold text-left transition-all relative flex items-center ${cls}`}>
+                                                            <span className="w-10 h-10 rounded-full border-2 border-current flex items-center justify-center font-black mr-4 flex-shrink-0">{String.fromCharCode(65+i)}</span>
+                                                            <div className="flex-1"><LatexText>{opt}</LatexText></div>
+                                                        </button>
+                                                    )
+                                                })}
+                                            </div>
+                                        ) : (<div className="max-w-lg mx-auto w-full"><input type="text" disabled={showExp} value={inputVal} onChange={e=>setInputVal(e.target.value)} placeholder="Nh?p dáp án..." className="w-full text-center text-3xl md:text-5xl font-black p-6 md:p-8 rounded-[2rem] border-[4px] border-slate-300 focus:border-indigo-600 focus:bg-white/80 outline-none transition-all placeholder:text-slate-400 text-slate-800 text-[16px] md:text-[3rem] bg-white/60"/></div>)}
+                                        {showExp && (<div className="mt-8 bg-green-50/90 p-6 rounded-3xl border-4 border-green-200 animate-[slideUp_0.3s] backdrop-blur-md shadow-lg"><div className="text-green-800 font-black mb-2 flex items-center gap-2 text-lg"><CheckCircle size={24}/> ÐÁP ÁN CHÍNH XÁC: <LatexText>{String(topic.questions[qIdx].correctAnswer)}</LatexText></div><div className="text-slate-800 font-medium text-xl"><LatexText>{topic.questions[qIdx].explanation}</LatexText></div></div>)}
+                                        <div className="mt-10 text-center pb-safe">{!showExp ? (<button onClick={()=>{const q=topic.questions[qIdx]; const cor = q.type==='mcq'?selectedOpt===q.correctAnswer : inputVal===q.correctAnswer; handleAnswer(cor);}} disabled={!selectedOpt && !inputVal} className="w-full md:w-auto bg-indigo-600 text-white font-black py-5 px-16 rounded-2xl text-2xl shadow-[0_6px_0_rgb(79,70,229)] active:translate-y-1 active:shadow-none disabled:opacity-50 transition-all uppercase tracking-widest hover:bg-indigo-500 hover:shadow-[0_10px_0_rgb(79,70,229)] hover:-translate-y-1">KI?M TRA NGAY</button>) : (<button onClick={nextQ} className="w-full md:w-auto bg-slate-800 text-white font-black py-5 px-16 rounded-2xl text-2xl shadow-[0_6px_0_rgb(15,23,42)] active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2 mx-auto hover:shadow-[0_10px_0_rgb(15,23,42)] hover:-translate-y-1">CÂU TI?P THEO <ArrowRight size={24} className="w-6 h-6 md:w-8 md:h-8"/></button>)}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+        const root = createRoot(document.getElementById('root')); root.render(<MathAdventure />);
+    </script>
+</body>
+</html>
